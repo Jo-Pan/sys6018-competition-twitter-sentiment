@@ -11,8 +11,12 @@ train$id<-NA
 comb<-rbind(train,test)
 comb<-comb[c("id","dataset","sentiment","text")]
 
+#remov_url
+remove_url<-function(x){gsub(" ?(f|ht)(tp)s?(://)(\\S*)[./](\\S*)", "", x)}
+comb$text_nourl<-lapply(comb$text,FUN=remove_url)
+
 #make all text into a corpus
-combtext<-VCorpus(VectorSource(comb$text))
+combtext<-VCorpus(VectorSource(comb$text_nourl))
 combtext[[1]]$content
 
 
@@ -57,3 +61,5 @@ combtext.clean[[1]]$content
 
 combtext.clean.df<-as.data.frame(as.matrix(DocumentTermMatrix(combtext.clean)), stringsAsFactors=False)
 comb_clean<-cbind(comb,combtext.clean.df)
+
+
