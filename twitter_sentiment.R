@@ -1,5 +1,6 @@
 setwd("/Users/Pan/Google Drive/Data Science/SYS 6018/sys6018-competition-twitter-sentiment")
 library(tm)
+library(tidytext)
 
 #read data & create comb
 train<-read.csv("train.csv")
@@ -36,10 +37,10 @@ dat5 <- paste(dat4, collapse = " ")
 return(dat5)
 }}
 
-comb$text_precleaned2<-rapply(comb$text_precleaned,remove_nonASCII)
+comb$text_precleaned<-rapply(comb$text_precleaned,remove_nonASCII)
 # ================make all text into a corpus ======================
 # convert string to vector of words
-combtext<-VCorpus(VectorSource(comb$text_precleaned2))
+combtext<-VCorpus(VectorSource(comb$text_precleaned))
 combtext[[1]]$content
 
 
@@ -84,3 +85,70 @@ combtext.clean[[1]]$content
 
 combtext.clean.df<-as.data.frame(as.matrix(DocumentTermMatrix(combtext.clean)), stringsAsFactors=False)
 comb_clean<-cbind(comb,combtext.clean.df)
+
+sentiment_col_index<-which(colnames(comb_clean) %in% sentiments$word)
+names(comb_clean[,sentiment_col_index])
+# ========================================================================
+#                                  ANALYSIS
+# ========================================================================
+# =================== descriptive analysis ============
+sort(colSums(comb_clean[comb_clean$sentiment==5,6:ncol(comb_clean)],na.rm=TRUE),decreasing=TRUE)
+sort(colSums(comb_clean[comb_clean$sentiment==4,6:ncol(comb_clean)],na.rm=TRUE),decreasing=TRUE)
+sort(colSums(comb_clean[comb_clean$sentiment==3,6:ncol(comb_clean)],na.rm=TRUE),decreasing=TRUE)
+sort(colSums(comb_clean[comb_clean$sentiment==2,6:ncol(comb_clean)],na.rm=TRUE),decreasing=TRUE)
+sort(colSums(comb_clean[comb_clean$sentiment==1,6:ncol(comb_clean)],na.rm=TRUE),decreasing=TRUE)
+
+# ==================== Split data =====================
+set.seed(1)
+mytrainrows<-sample(1:nrow(train),0.7*nrow(train))
+mytrain<-comb_clean[comb_clean$dataset=="train",][mytrainrows,]
+myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
+
+# ==================== logistic regression ===========
+lm1<-lm(sentiment~.,data=mytrain[,c(3,sentiment_col_index)])
+summary(lm1)                                             #TRAIN: Adjusted R-squared:   0.1594 
+preds1<-predict(lm1,newdata = myvalid[,c(sentiment_col_index)])
+sum(as.integer(preds1)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.4745763
+mse1<-sum((preds1-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.8828927
+
+lm2<-lm(sentiment~.,data=mytrain[,c(3,6:ncol(mytrain))])
+summary(lm2)                                             #TEST:Adjusted R-squared:  0.8218 
+preds2<-predict(lm2,newdata = myvalid[,(6:ncol(mytrain))])
+sum(as.integer(preds2)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6440678
+mse2<-sum((preds2-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.003393332
+
+# ================== decision tree =================
+library(rpart)
+my_tree1 <- rpart(sentiment ~., data=mytrain[,c(3,6:ncol(mytrain))], method = "class", control=rpart.control(cp=0.0001))
+#summary(my_tree1)
+preds_tr1<-predict(my_tree1,newdata = myvalid[,(6:ncol(mytrain))])
+preds_tr1.ans<-colnames(preds_tr1)[apply(preds_tr1,1,which.max)]
+sum(as.integer(preds_tr1.ans)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.5728814
+
+my_tree2 <- rpart(sentiment ~., data=mytrain[,c(3,6:ncol(mytrain))], method = "class", control=rpart.control(cp=0.001))
+#summary(my_tree2)
+preds_tr2<-predict(my_tree2,newdata = myvalid[,(6:ncol(mytrain))])
+preds_tr2.ans<-colnames(preds_tr2)[apply(preds_tr2,1,which.max)]
+sum(as.integer(preds_tr2.ans)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.5864407
+
+my_tree3 <- rpart(sentiment ~., data=mytrain[,c(3,6:ncol(mytrain))], method = "class", control=rpart.control(cp=0.01))
+#summary(my_tree2)
+preds_tr3<-predict(my_tree3,newdata = myvalid[,(6:ncol(mytrain))])
+preds_tr3.ans<-colnames(preds_tr3)[apply(preds_tr3,1,which.max)]
+sum(as.integer(preds_tr3.ans)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.620339
+                                                                #Public Score my_tree3: 0.68098
+
+my_tree4 <- rpart(sentiment ~., data=mytrain[,c(3,6:ncol(mytrain))], method = "class", control=rpart.control(cp=0.1))
+#summary(my_tree2)
+preds_tr4<-predict(my_tree4,newdata = myvalid[,(6:ncol(mytrain))])
+preds_tr4.ans<-colnames(preds_tr4)[apply(preds_tr4,1,which.max)]
+sum(as.integer(preds_tr4.ans)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6169492
+
+
+# Predict
+#final_model<-rpart(sentiment ~., data=comb_clean[comb_clean$dataset=="train",c(3,6:ncol(comb_clean))], method = "class", control=rpart.control(cp=0.01))
+final_preds<-predict(my_tree3,newdata = comb_clean[comb_clean$dataset=="test",c(6:ncol(comb_clean))])
+final_preds.ans<-colnames(final_preds)[apply(final_preds,1,which.max)]
+final_table<-data.frame(test$id, as.integer(final_preds.ans))
+# Write files
+write.table(final_table, file="dt0_01.csv", row.names=F, col.names=c("id", "sentiment"), sep=",")
