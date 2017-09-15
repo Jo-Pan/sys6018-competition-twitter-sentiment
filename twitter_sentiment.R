@@ -11,12 +11,35 @@ train$id<-NA
 comb<-rbind(train,test)
 comb<-comb[c("id","dataset","sentiment","text")]
 
-#remov_url
+# =================== Preclean ==========================
 remove_url<-function(x){gsub(" ?(f|ht)(tp)s?(://)(\\S*)[./](\\S*)", "", x)}
-comb$text_nourl<-lapply(comb$text,FUN=remove_url)
+remove_tw_tag<-function(x){gsub("RT |via ", "", x)}
+remove_tw_username<-function(x){gsub("[@][a-zA-Z0-9_]{1,15}", "", x)}
+remove_email<-function(x){gsub("\\b[A-Za-z0-9._-]*[@](.*?)[.].{1,3}\\b", "", x)}
 
-#make all text into a corpus
-combtext<-VCorpus(VectorSource(comb$text_nourl))
+
+comb$text_precleaned<-lapply(comb$text,FUN=remove_url)
+comb$text_precleaned<-lapply(comb$text_precleaned,FUN=remove_tw_tag)
+comb$text_precleaned<-lapply(comb$text_precleaned,FUN=remove_tw_username)
+comb$text_precleaned<-lapply(comb$text_precleaned,FUN=remove_email)
+
+#http://stackoverflow.com/questions/18153504/removing-non-english-text-from-corpus-in-r-using-tm
+remove_nonASCII<-function(mytextcell){
+dat2 <- unlist(strsplit(unlist(mytextcell), split=" "))
+dat3 <- grep("dat2", iconv(dat2, "latin1", "ASCII", sub="dat2"))
+if (length(dat3)==0){
+  return(mytextcell)
+}
+else{
+dat4 <- dat2[-dat3]
+dat5 <- paste(dat4, collapse = " ")
+return(dat5)
+}}
+
+comb$text_precleaned2<-rapply(comb$text_precleaned,remove_nonASCII)
+# ================make all text into a corpus ======================
+# convert string to vector of words
+combtext<-VCorpus(VectorSource(comb$text_precleaned2))
 combtext[[1]]$content
 
 
@@ -40,7 +63,7 @@ combtext.clean = tm_map(combtext.clean, stemDocument)                       # st
 
 # compare original content of document 1 with cleaned content
 combtext[[1]]$content
-combtext.clean[[1]]$content  # do we care about misspellings resulting from stemming?
+combtext.clean[[4]]$content  # do we care about misspellings resulting from stemming?
 
 # recompute TF-IDF matrix
 combtext.clean.tfidf = DocumentTermMatrix(combtext.clean, control = list(weighting = weightTfIdf))
@@ -61,5 +84,3 @@ combtext.clean[[1]]$content
 
 combtext.clean.df<-as.data.frame(as.matrix(DocumentTermMatrix(combtext.clean)), stringsAsFactors=False)
 comb_clean<-cbind(comb,combtext.clean.df)
-
-
