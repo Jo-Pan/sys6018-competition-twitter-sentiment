@@ -74,20 +74,34 @@ combtext.clean.tfidf[1:5,1:5]
 as.matrix(combtext.clean.tfidf[1:5,1:5])
 
 # we've still got a very sparse document-term matrix. remove sparse terms at various thresholds.
-tfidf.99 = removeSparseTerms(combtext.clean.tfidf, 0.99)  # remove terms that are absent from at least 99% of documents (keep most terms)
-tfidf.99
-as.matrix(tfidf.99[1:5,])
+tfidf.99 = removeSparseTerms(combtext.clean.tfidf, 0.99)  # remove terms that are absent from at least 99% of documents 110 terms left
+tfidf.98 = removeSparseTerms(combtext.clean.tfidf, 0.98)  # remove terms that are absent from at least 98% of documents 110 terms left
+tfidf.95 = removeSparseTerms(combtext.clean.tfidf, 0.95)  # remove terms that are absent from at least 95% of documents 8 terms left
+tfidf.90 = removeSparseTerms(combtext.clean.tfidf, 0.90)  # remove terms that are absent from at least 90% of documents 5 terms left
+tfidf.80 = removeSparseTerms(combtext.clean.tfidf, 0.80)  # remove terms that are absent from at least 80% of documents 3 terms left
+tfidf.70 = removeSparseTerms(combtext.clean.tfidf, 0.70)  # remove terms that are absent from at least 70% of documents. 2 terms left
+inspect(tfidf.99)
 
-tfidf.70 = removeSparseTerms(combtext.clean.tfidf, 0.70)  # remove terms that are absent from at least 70% of documents
-tfidf.70
 as.matrix(tfidf.70[1:5,])
 combtext.clean[[1]]$content
-
+# =============== convert to df ==================
 combtext.clean.df<-as.data.frame(as.matrix(DocumentTermMatrix(combtext.clean)), stringsAsFactors=False)
 comb_clean<-cbind(comb,combtext.clean.df)
 
-sentiment_col_index<-which(colnames(comb_clean) %in% sentiments$word)
+# =============== sentiment words column index ==========
+#stem the library of sentiments words
+sentiments_corp<-VCorpus(VectorSource(sentiments))
+sentiments_corp<-tm_map(sentiments_corp,stemDocument)
+sentiments_corp.df<-as.data.frame(as.matrix(DocumentTermMatrix(sentiments_corp)), stringsAsFactors=False)
+
+#identify the sentiment words in comb_clean
+sentiment_col_index<-which(colnames(comb_clean) %in% colnames(sentiments_corp.df))
 names(comb_clean[,sentiment_col_index])
+length(sentiment_col_index)
+
+# ============== .99 sparse words column index ==================
+sparse_99_col_index<-which(colnames(comb_clean) %in% colnames(as.matrix(tfidf.99)))
+
 # ========================================================================
 #                                  ANALYSIS
 # ========================================================================
@@ -106,8 +120,8 @@ myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
 
 # ==================== logistic regression ===========
 lm1<-lm(sentiment~.,data=mytrain[,c(3,sentiment_col_index)])
-summary(lm1)                                             #TRAIN: Adjusted R-squared:   0.1594 
-preds1<-predict(lm1,newdata = myvalid[,c(sentiment_col_index)])
+summary(lm1)                                             #TRAIN: Adjusted R-squared:   1 
+preds1<-predict(lm1,newdata = myvalid[,sentiment_col_index])
 sum(as.integer(preds1)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.4745763
 mse1<-sum((preds1-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.8828927
 
