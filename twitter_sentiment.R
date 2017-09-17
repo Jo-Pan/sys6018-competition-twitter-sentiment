@@ -1,6 +1,8 @@
 setwd("/Users/Pan/Google Drive/Data Science/SYS 6018/sys6018-competition-twitter-sentiment")
 library(tm)
-library(tidytext)
+library(tidytext) #sentiment words library
+library(rpart) #decision tree
+library(RSentiment) #calculate sentiment score
 
 #read data & create comb
 train<-read.csv("train.csv")
@@ -96,11 +98,15 @@ sentiments_corp.df<-as.data.frame(as.matrix(DocumentTermMatrix(sentiments_corp))
 
 #identify the sentiment words in comb_clean
 sentiment_col_index<-which(colnames(comb_clean) %in% colnames(sentiments_corp.df))
+sentiment_col_index<-sentiment_col_index[2:length(sentiment_col_index)]
 names(comb_clean[,sentiment_col_index])
 length(sentiment_col_index)
 
 # ============== .99 sparse words column index ==================
 sparse_99_col_index<-which(colnames(comb_clean) %in% colnames(as.matrix(tfidf.99)))
+
+# ============== add in a sentiment score =====================
+
 
 # ========================================================================
 #                                  ANALYSIS
@@ -119,20 +125,31 @@ mytrain<-comb_clean[comb_clean$dataset=="train",][mytrainrows,]
 myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
 
 # ==================== logistic regression ===========
-lm1<-lm(sentiment~.,data=mytrain[,c(3,sentiment_col_index)])
-summary(lm1)                                             #TRAIN: Adjusted R-squared:   1 
-preds1<-predict(lm1,newdata = myvalid[,sentiment_col_index])
-sum(as.integer(preds1)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.4745763
-mse1<-sum((preds1-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.8828927
+# ---- with .99 sparse words ------
+lm1<-lm(sentiment~.,data=mytrain[,c(3,sparse_99_col_index)])
+summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.0838  
+preds1<-predict(lm1,newdata = myvalid[,sparse_99_col_index])
+sum(as.integer(preds1)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.420339
+mse1<-sum((preds1-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE: 0.7261769
 
+# ---- with all var ------
 lm2<-lm(sentiment~.,data=mytrain[,c(3,6:ncol(mytrain))])
 summary(lm2)                                             #TEST:Adjusted R-squared:  0.8218 
 preds2<-predict(lm2,newdata = myvalid[,(6:ncol(mytrain))])
 sum(as.integer(preds2)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6440678
 mse2<-sum((preds2-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.003393332
 
+# ---- with sentiment ------
+lm3<-lm(sentiment~.,data=mytrain[,c(3,sentiment_col_index)])
+summary(lm3)                                             #TEST:Adjusted R-squared:  0.5539 
+preds3<-predict(lm3,newdata = myvalid[,sentiment_col_index])
+sum(as.integer(preds3)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6440678
+                                                         #prediction from a rank-deficient fit may be misleading
+mse3<-sum((preds3-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:mse3
+
+
+
 # ================== decision tree =================
-library(rpart)
 my_tree1 <- rpart(sentiment ~., data=mytrain[,c(3,6:ncol(mytrain))], method = "class", control=rpart.control(cp=0.0001))
 #summary(my_tree1)
 preds_tr1<-predict(my_tree1,newdata = myvalid[,(6:ncol(mytrain))])
