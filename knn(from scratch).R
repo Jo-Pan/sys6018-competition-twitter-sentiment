@@ -9,19 +9,26 @@ y<-4
 x<-c(1:3)
 myrow<-c(1,1,1)
 # ----------------------
-knn.fn<-function(myrow,sample,k,y,x){
-  #y: column number of y in sample
-  #x: list of column numbers of predictors(x) in sample
+
+knn.fn<-function(sample,y_col,x_cols,k){
+  #y_col: column number of y in sample
+  #x_cols: list of column numbers of predictors(x) in sample
   distance<-function(myrow,compare_row){
-   return(sqrt(sum((myrow-compare_row)^2)))}
-  
-  distance_list<-c()
+    return(sqrt(sum((myrow-compare_row)^2)))}
+  results<-c()
   for (i in 1:nrow(sample)){
-    distance_list<-c(distance_list,distance(myrow,sample[i,x]))}
-  voting_rows<-which(distance_list %in% head(sort(distance_list),k))[1:k]
-  votes<-sample[voting_rows,y]
-  votes<-factor(votes)
-  return(names(sort(summary(votes),decreasing=TRUE)[1]))
+    distance_list<-c()
+    thesample<-sample[-i,]
+    for (j in 1:nrow(thesample)){
+      distance_list<-c(distance_list,distance(sample[i,x_cols],thesample[j,x_cols]))}
+    voting_rows<-which(distance_list %in% head(sort(distance_list),k))[1:k]
+    votes<-sample[voting_rows,y_col]
+    votes<-factor(votes)
+    results<-c(results,names(sort(summary(votes),decreasing=TRUE)[1]))
+    print(results)
   }
+  return(results)
+}
+knn.fn(mytrain,3,sparse_99_col_index,9)
 
  
