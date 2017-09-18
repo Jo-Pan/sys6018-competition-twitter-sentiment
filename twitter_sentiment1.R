@@ -1,8 +1,10 @@
-setwd("/Users/Pan/Google Drive/Data Science/SYS 6018/sys6018-competition-twitter-sentiment")
+library(nnet)
 library(tm)
 library(tidytext) #sentiment words library
 library(rpart) #decision tree
 library(RSentiment) #calculate sentiment score
+library(boot)
+library(tibble)
 
 #read data & create comb
 train<-read.csv("train.csv")
@@ -121,26 +123,64 @@ sort(colSums(comb_clean[comb_clean$sentiment==1,6:ncol(comb_clean)],na.rm=TRUE),
 # ==================== Split data =====================
 set.seed(1)
 mytrainrows<-sample(1:nrow(train),0.7*nrow(train))
-mytrain<-comb_clean[comb_clean$dataset=="train",][mytrainrows,]
+mytrain2<-comb_clean[comb_clean$dataset=="train",][mytrainrows,]
 myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
 
 # ==================== logistic regression ===========
 # ---- with .99 sparse words ------
-lm1<-lm(sentiment~.,data=mytrain[,c(3,sparse_99_col_index)])
+lm1<-glm(sentiment~.,data=mytrain[,c(3,sparse_99_col_index)])
 summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.0838  
 preds1<-predict(lm1,newdata = myvalid[,sparse_99_col_index])
 sum(as.integer(preds1)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.420339
 mse1<-sum((preds1-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE: 0.7261769
 
+# list <- rownames(as.data.frame(s$coefficients[s$coefficients[,4] <= 0.05,]))
+# list <-  list[2:length(list)]
+# list <- c(list, "sentiment")
+# 
+# mytrain1 <- mytrain[ ,(names(mytrain) %in% list)]
+# myvalid1 <- myvalid[ ,(names(myvalid) %in% list)]
+
+lm1.1 <- glmnet(sentiment ~ around + build + cant + car + citi + 
+                  dont + first + googl + hit + hope + insur + less + much + 
+                  one + peopl + ride + robot + say + selfdriv + soon + taxi + 
+                  that + thing + think + use + wait + want + watch + yes , family = "multinomial")
+
+step(lm1, direction = "both")
+
+rm(list)
+list <- c("around" , "build" , "cant" , "car" , "citi" , 
+          "dont" , "first" , "googl" , "hit" , "hope" , "insur" , "less" , "much" , 
+          "one" , "peopl" , "ride" , "robot" , "say" , "selfdriv" , "soon" , "taxi" , 
+          "that" , "thing" , "think" , "use" , "wait" , "want" , "watch" , "yes", "sentiment")
+
+mytrain2<-comb_clean[comb_clean$dataset=="train",]
+mytrain3 <- mytrain2[ ,(names(mytrain2) %in% list)]
+
+
+test_glm <- glm(formula = sentiment ~ around + build + cant + car + citi + 
+      dont + first + googl + hit + hope + insur + less + much + 
+      one + peopl + ride + robot + say + selfdriv + soon + taxi + 
+      that + thing + think + use + wait + want + watch + yes, data = mytrain3)
+
+preds2<-predict(test_glm,newdata = test)
+sum(as.integer(preds2)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6440678
+mse2<-sum((preds2-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.003393332
+
+cost <- function(r, pi = 0) mean(abs(r-pi) > 0.5)
+
+cv.err <- cv.glm(mytrain3, test_glm, cost, K = 10)$delta
+
+
 # ---- with all var ------
-lm2<-lm(sentiment~.,data=mytrain[,c(3,6:ncol(mytrain))])
+lm2<-multinom(sentiment~.,data=mytrain[,c(3,6:ncol(mytrain))])
 summary(lm2)                                             #TEST:Adjusted R-squared:  0.8218 
 preds2<-predict(lm2,newdata = myvalid[,(6:ncol(mytrain))])
 sum(as.integer(preds2)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6440678
 mse2<-sum((preds2-myvalid$sentiment)^2)/nrow(myvalid)    #VALID: MSE:0.003393332
 
 # ---- with sentiment ------
-lm3<-lm(sentiment~.,data=mytrain[,c(3,sentiment_col_index)])
+lm3<-glm(sentiment~.,data=mytrain[,c(3,sentiment_col_index)])
 summary(lm3)                                             #TEST:Adjusted R-squared:  0.5539 
 preds3<-predict(lm3,newdata = myvalid[,sentiment_col_index])
 sum(as.integer(preds3)==myvalid$sentiment)/nrow(myvalid) #VALID: correction rate: 0.6440678
