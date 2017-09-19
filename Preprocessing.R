@@ -1,4 +1,3 @@
-setwd("/Users/Pan/Google Drive/Data Science/SYS 6018/sys6018-competition-twitter-sentiment")
 library(tm)
 library(tidytext) #sentiment words library
 library(rpart)     #decision tree
@@ -78,8 +77,8 @@ combtext.clean = tm_map(combtext.clean, removeWords, mystopwords)           # re
 combtext.clean = tm_map(combtext.clean, stemDocument)                       # stem all words
 
 # compare original content of document 1 with cleaned content
-#combtext[[1]]$content
-#combtext.clean[[4]]$content  # do we care about misspellings resulting from stemming?
+combtext[[1]]$content
+combtext.clean[[1]]$content  # do we care about misspellings resulting from stemming?
 
 # recompute TF-IDF matrix
 combtext.clean.tfidf = DocumentTermMatrix(combtext.clean, control = list(weighting = weightTfIdf))
@@ -89,7 +88,7 @@ combtext.clean.tfidf = DocumentTermMatrix(combtext.clean, control = list(weighti
 #as.matrix(combtext.clean.tfidf[1:5,1:5])
 
 # we've still got a very sparse document-term matrix. remove sparse terms at various thresholds.
-                                                    #remove terms that are absent from at least 
+#remove terms that are absent from at least 
 tfidf.99 = removeSparseTerms(combtext.clean.tfidf, 0.99)  # ~99% of documents 110 terms left
 tfidf.98 = removeSparseTerms(combtext.clean.tfidf, 0.98)  # ~98% of documents 110 terms left
 tfidf.95 = removeSparseTerms(combtext.clean.tfidf, 0.95)  # ~95% of documents 8 terms left
@@ -101,50 +100,47 @@ tfidf.70 = removeSparseTerms(combtext.clean.tfidf, 0.70)  # ~70% of documents. 2
 #combtext.clean[[1]]$content
 
 
-# =============== optional: sentiment words column index ========================================
-#stem the library of sentiments words
-sentiments_corp<-VCorpus(VectorSource(sentiments))
-sentiments_corp<-tm_map(sentiments_corp,stemDocument)
-sentiments_corp.df<-as.data.frame(as.matrix(DocumentTermMatrix(sentiments_corp)), stringsAsFactors=False)
-
-#identify the sentiment words in comb_clean
-sentiment_col_index<-which(colnames(comb_clean) %in% colnames(sentiments_corp.df))
-sentiment_col_index<-sentiment_col_index[2:length(sentiment_col_index)]
-names(comb_clean[,sentiment_col_index])
-length(sentiment_col_index)
+# # =============== optional: sentiment words column index ========================================
+# #stem the library of sentiments words
+# sentiments_corp<-VCorpus(VectorSource(sentiments))
+# sentiments_corp<-tm_map(sentiments_corp,stemDocument)
+# sentiments_corp.df<-as.data.frame(as.matrix(DocumentTermMatrix(sentiments_corp)), stringsAsFactors=False)
+# 
+# #identify the sentiment words in comb_clean
+# sentiment_col_index<-which(colnames(comb_clean) %in% colnames(sentiments_corp.df))
+# sentiment_col_index<-sentiment_col_index[2:length(sentiment_col_index)]
+# names(comb_clean[,sentiment_col_index])
+# length(sentiment_col_index)
 
 # ============== bigrams ======================================================================
 #http://tm.r-forge.r-project.org/faq.html#Bigrams
-BigramTokenizer <-
-  function(x)
-    unlist(lapply(ngrams(words(x), 2), paste, collapse = " "), use.names = FALSE)
+BigramTokenizer <-function(x) unlist(lapply(ngrams(words(x), 2), paste, collapse = " "), use.names = FALSE)
 
 tdm <- TermDocumentMatrix(combtext.clean, control = list(tokenize = BigramTokenizer))
 bi.tdm<-removeSparseTerms(tdm, 0.99) #20 terms
 #inspect(bi.tdm)
 
 # ============== trigrams ======================================================================
-BigramTokenizer3 <-
-  function(x)
-    unlist(lapply(ngrams(words(x), 3), paste, collapse = " "), use.names = FALSE)
+BigramTokenizer3 <-function(x) unlist(lapply(ngrams(words(x), 3), paste, collapse = " "), use.names = FALSE)
 
 tdm3 <- TermDocumentMatrix(combtext.clean, control = list(tokenize = BigramTokenizer3))
 tri.tdm<-removeSparseTerms(tdm3, 0.99) #10 terms
 #inspect(tri.tdm)
 
+
 # =============== convert to df ===============================================================
 combtext.clean.df<-as.data.frame(as.matrix(DocumentTermMatrix(combtext.clean)), stringsAsFactors=False)
 comb_clean<-cbind(comb,combtext.clean.df)
 
-combtext.clean.df.bi<-as.data.frame(t(as.matrix(bi.tdm)), stringsAsFactors=FALSE)
-combtext.clean.df.tri<-as.data.frame(t(as.matrix(tri.tdm)), stringsAsFactors=FALSE)
-comb_clean<-cbind(comb_clean,combtext.clean.df.bi,combtext.clean.df.tri)
-
-# =============== check if df contains certain punctuation(eg: !, ?) ===============================
-comb_clean$qn_mark<-as.integer(grepl("?",comb_clean$text_precleaned))
-comb_clean$ex_mark<-as.integer(grepl("!",comb_clean$text_precleaned))
-
 # ============== .99 sparse words column index =====================================================
 sparse_99_col_index<-which(colnames(comb_clean) %in% colnames(as.matrix(tfidf.99)))
+comb_clean_sparse99 <- comb_clean[,c(2:3,sparse_99_col_index)]
 
+combtext.clean.df.bi<-as.data.frame(t(as.matrix(bi.tdm)), stringsAsFactors=FALSE)
+combtext.clean.df.tri<-as.data.frame(t(as.matrix(tri.tdm)), stringsAsFactors=FALSE)
+comb_clean_final<-cbind(comb_clean_sparse99,combtext.clean.df.bi,combtext.clean.df.tri)
+
+# # =============== check if df contains certain punctuation(eg: !, ?) ===============================
+# comb_clean$qn_mark<-as.integer(grepl("?",comb_clean$text_precleaned))
+# comb_clean$ex_mark<-as.integer(grepl("!",comb_clean$text_precleaned))
 
