@@ -155,26 +155,97 @@ myx<-comb_clean[comb_clean$dataset=="train",6:ncol(comb_clean)]
 myy<-comb_clean$sentiment[comb_clean$dataset=="train"]
 entropy_list<-apply(myx,2,FUN=entropy,myy)
 #sort(entropy_list,decreasing = TRUE)
-high_entropy_list<-entropy_list[entropy_list>2]
-high_entropy_list<-high_entropy_list[!is.na(high_entropy_list)]
+high_entropy_list.uni<-entropy_list[entropy_list>2]
+high_entropy_list.uni<-high_entropy_list.uni[!is.na(high_entropy_list.uni)]
 
-high_entropy_col_index<-which(colnames(comb_clean) %in% names(high_entropy_list))
+high_entropy_col_index.uni<-which(colnames(comb_clean) %in% names(high_entropy_list.uni))
 
 library(boot)
 library(DAAG)
 library(caret)
 
+# ----- bi -----
+full.df.bi<-as.data.frame(t(as.matrix(tdm)), stringsAsFactors=FALSE)
+comb_full.df.bi<-cbind(comb,full.df.bi)
+
+myx<-comb_full.df.bi[comb_full.df.bi$dataset=="train",6:ncol(comb_clean)]
+myy<-comb_full.df.bi$sentiment[comb_full.df.bi$dataset=="train"]
+entropy_list<-apply(myx,2,FUN=entropy,myy)
+#sort(entropy_list,decreasing = TRUE)
+high_entropy_list.bi<-entropy_list[entropy_list>2]
+high_entropy_list.bi<-high_entropy_list.bi[!is.na(high_entropy_list.bi)]
+
+hi_ent_df.bi<-comb_full.df.bi[,colnames(comb_full.df.bi) %in% names(high_entropy_list.bi)]
+
+# ----- tri -----
+full.df.tri<-as.data.frame(t(as.matrix(tdm3)), stringsAsFactors=FALSE)
+comb_full.df.tri<-cbind(comb,full.df.tri)
+
+myx<-comb_full.df.tri[comb_full.df.tri$dataset=="train",6:ncol(comb_clean)]
+myy<-comb_full.df.tri$sentiment[comb_full.df.tri$dataset=="train"]
+entropy_list<-apply(myx,2,FUN=entropy,myy)
+#sort(entropy_list,decreasing = TRUE)
+high_entropy_list.tri<-entropy_list[entropy_list>2]
+high_entropy_list.tri<-high_entropy_list.tri[!is.na(high_entropy_list.tri)]
+
+hi_ent_df.tri<-comb_full.df.tri[,colnames(comb_full.df.tri) %in% names(high_entropy_list.tri)]
+
+#============ convert to df ==================
+names(high_entropy_list.tri) %in% colnames(comb_clean) # high_ent_tri NOT in comb_clean.
+names(high_entropy_list.bi) %in% colnames(comb_clean) # some high_ent_bi NOT in comb_clean.
+
+addition_bi<-high_entropy_list.bi[!names(high_entropy_list.bi) %in% colnames(comb_clean)]
+addition_bi.df<-full.df.bi[,colnames(full.df.bi) %in% names(addition_bi)]  #12
+addition_tri.df<-full.df.tri[,colnames(full.df.tri) %in% names(high_entropy_list.tri)] #3
+
+comb_clean_hi_ent<-comb
+comb_clean_hi_ent<-cbind(comb_clean_hi_ent,combtext.clean.df[,colnames(combtext.clean.df) %in% names(high_entropy_list.uni)])
+comb_clean_hi_ent<-cbind(comb_clean_hi_ent,hi_ent_df.bi,hi_ent_df.tri)
+
+comb_clean<-cbind(comb_clean,addition_bi.df,addition_tri.df) #with all uni+sparse_bi + high_ent_bi+ 
+                                                            #spacse_tri+ high_ent_tri
+# ========================================================================
+#                                  ANALYSIS
+# ========================================================================
 # ==================== Split data =====================
 set.seed(1)
 mytrainrows<-sample(1:nrow(train),0.7*nrow(train))
 mytrain<-comb_clean[comb_clean$dataset=="train",][mytrainrows,]
 myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
 
-lm1<-lm(sentiment ~.,data=mytrain[,c(3,high_entropy_col_index)])
-summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.1697 
-preds <- predict(lm1,newdata = myvalid[,c(3,high_entropy_col_index)])
-sum(as.integer(preds)==myvalid$sentiment)/nrow(myvalid) #0.3932203
+mytrain_hi_ent<-comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",][mytrainrows,]
+myvalid_hi_ent<-comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",][-mytrainrows,]
 
+# ==================== all.sig =================
+lm.all<-lm(sentiment ~., data=mytrain[,c(3,6:ncol(mytrain))])
+summary(lm.all) # Adjusted R-squared:  0.7767
+coef_lst<-summary(lm.all)$coefficients[,4]
+sig_coef_col_index<-which(colnames(comb_clean) %in% names(coef_lst[coef_lst<0.05]))
+
+lm.all.sig<-lm(sentiment~., data=mytrain[,c(3,sig_coef_col_index)])
+summary(lm.all.sig) #Adjusted R-squared:  0.09475 
+preds.all.sig <- predict(lm.all.sig,newdata = myvalid[,c(3,sig_coef_col_index)])
+sum(round(preds.all.sig)==myvalid$sentiment)/nrow(myvalid) #0.5966102
+
+# ==================== high_ent.sig =================
+lm.high_ent<-lm(sentiment ~., data=mytrain_hi_ent[,c(3,6:ncol(mytrain_hi_ent))])
+summary(lm.high_ent) # Adjusted R-squared:  0.1461 
+
+coef_lst<-summary(lm.high_ent)$coefficients[,4]
+sig_coef_col_index<-which(colnames(mytrain_hi_ent) %in% names(coef_lst[coef_lst<0.05]))
+
+lm.high_ent.sig<-lm(sentiment~., data=mytrain_hi_ent[,c(3,sig_coef_col_index)])
+summary(lm.high_ent.sig) #Adjusted R-squared:  0.1456 
+preds.high_ent.sig <- predict(lm.high_ent.sig,newdata = myvalid_hi_ent[,c(3,sig_coef_col_index)])
+sum(round(preds.high_ent.sig)==myvalid_hi_ent$sentiment)/nrow(myvalid_hi_ent) #0.6101695
+
+
+# ============== high uni entropy ===========================
+
+lm1<-lm(sentiment ~.,data=mytrain[,c(3,high_entropy_col_index.uni)])
+summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.1697 
+preds <- predict(lm1,newdata = myvalid[,c(3,high_entropy_col_index.uni)])
+sum(round(preds)==myvalid$sentiment)/nrow(myvalid) #0.3932203
 
 
 coef_lst<-summary(lm1)$coefficients[,4]
@@ -185,3 +256,31 @@ summary(lm2)                                             #TRAIN: Adjusted R-squa
 preds2 <- predict(lm2,newdata = myvalid[,c(3,sig_coef_col_index)])
 sum(as.integer(preds2)==myvalid$sentiment)/nrow(myvalid) #0.6
 
+# ==================== all train + high uni entropy ========================
+lm1<-lm(sentiment ~.,data=comb_clean[comb_clean$dataset=="train",c(3,high_entropy_col_index)])
+summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.1697 
+
+coef_lst<-summary(lm1)$coefficients[,4]
+sig_coef_col_index<-which(colnames(comb_clean) %in% names(coef_lst[coef_lst<0.05]))
+
+lm2<-lm(sentiment ~.,data=comb_clean[comb_clean$dataset=="train",c(3,sig_coef_col_index)])
+summary(lm2)                                             #TRAIN: Adjusted R-squared:  0.165
+preds2 <- round(predict(lm2,newdata = comb_clean[comb_clean$dataset=="test",,c(3,sig_coef_col_index)]))
+
+final_table<-data.frame(test$id, preds2)
+# Write files
+write.table(final_table, file="entropy.csv", row.names=F, col.names=c("id", "sentiment"), sep=",")
+
+# ==================== all train + high all uni entropy ========================
+lm.high_ent.all<-lm(sentiment ~., data=comb_clean_hi_ent[,c(3,6:ncol(comb_clean_hi_ent))])
+summary(lm.high_ent.all)                                 #TRAIN: Adjusted R-squared: 0.1623 
+
+coef_lst<-summary(lm.high_ent.all)$coefficients[,4]
+sig_coef_col_index<-which(colnames(comb_clean_hi_ent) %in% names(coef_lst[coef_lst<0.05]))
+
+lm.high_ent.all.sig<-lm(sentiment ~.,data=comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",c(3,sig_coef_col_index)])
+summary(lm.high_ent.all.sig)                             #TRAIN: Adjusted R-squared:  0.1438 
+preds.high_ent.all <- round(predict(lm.high_ent.all.sig,newdata = comb_clean_hi_ent[comb_clean_hi_ent$dataset=="test",,c(3,sig_coef_col_index)]))
+
+final_table<-data.frame(test$id, preds.high_ent.all)
+write.table(final_table, file="entropy.csv", row.names=F, col.names=c("id", "sentiment"), sep=",")
