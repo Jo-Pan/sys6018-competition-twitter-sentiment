@@ -173,8 +173,7 @@ myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
 lm1<-lm(sentiment ~.,data=mytrain[,c(3,high_entropy_col_index)])
 summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.1697 
 preds <- predict(lm1,newdata = myvalid[,c(3,high_entropy_col_index)])
-sum(as.integer(preds)==myvalid$sentiment)/nrow(myvalid) #0.3932203
-
+sum(round(preds)==myvalid$sentiment)/nrow(myvalid) #0.3932203
 
 
 coef_lst<-summary(lm1)$coefficients[,4]
@@ -185,3 +184,17 @@ summary(lm2)                                             #TRAIN: Adjusted R-squa
 preds2 <- predict(lm2,newdata = myvalid[,c(3,sig_coef_col_index)])
 sum(as.integer(preds2)==myvalid$sentiment)/nrow(myvalid) #0.6
 
+# ==================== for all train ========================
+lm1<-lm(sentiment ~.,data=comb_clean[comb_clean$dataset=="train",c(3,high_entropy_col_index)])
+summary(lm1)                                             #TRAIN: Adjusted R-squared:  0.1697 
+
+coef_lst<-summary(lm1)$coefficients[,4]
+sig_coef_col_index<-which(colnames(comb_clean) %in% names(coef_lst[coef_lst<0.05]))
+
+lm2<-lm(sentiment ~.,data=comb_clean[comb_clean$dataset=="train",c(3,sig_coef_col_index)])
+summary(lm2)                                             #TRAIN: Adjusted R-squared:  0.165
+preds2 <- round(predict(lm2,newdata = comb_clean[comb_clean$dataset=="test",,c(3,sig_coef_col_index)]))
+
+final_table<-data.frame(test$id, preds2)
+# Write files
+write.table(final_table, file="entropy.csv", row.names=F, col.names=c("id", "sentiment"), sep=",")
