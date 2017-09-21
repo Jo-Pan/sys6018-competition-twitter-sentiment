@@ -8,7 +8,7 @@ Kaggle Competition Link: https://inclass.kaggle.com/c/twitter-sentiment-analysis
 | Abhijith Mandya | Content Cell  | lm            |
 | Jack Prominski  | Content Cell  | knn           |
 
-# Data exploration & Data cleaning (missing values, outliers, etc.)
+# Data exploration & Data cleaning 
 we explored unigram, bigram and trigram variables.
 
 we cleanned the following:
