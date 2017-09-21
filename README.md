@@ -4,9 +4,16 @@ Kaggle Competition Link: https://inclass.kaggle.com/c/twitter-sentiment-analysis
 # Team Members & Roles:
 |    Name         | Computing ID  |    Role       |
 | -------------   | ------------- | ------------- |
-| Huitong(Jo) Pan | hp4zw         | data preprocessing, entrophy with lm, decision tree, organize code              |
+| Huitong(Jo) Pan | hp4zw         | data preprocessing, entrophy with lm, decision tree, organize code & github    |
 | Abhijith Mandya | Content Cell  | lm            |
-| Jack Prominski  | Content Cell  | knn           |
+| Jack Prominski  | jmp3mk        | knn           |
+
+# Best Models & Scores:
+
+|   Model Name   | Kaggle Score |   
+| -------------   | ------------- | 
+| lm | .69120  |
+| knn | .59100 | 
 
 # Data exploration & Data cleaning 
 we explored unigram, bigram and trigram variables.
@@ -38,7 +45,11 @@ leave-one-out-validation
 
 # the reflection questions
 1. Who might care about this problem and why?
+Public relation department in companies dealing with self-driving cars might care about this problem, because it represents public's perception and helps tailoring their marketing message.
  
 2. Why might this problem be challenging?
+Twitter can represent some groups of people's opinions. This does not include many elderlies' and non-frequent-twitter-users' opinions.
 
 3. What other problems resemble this problem?
+Sentiment analysis for election candidates.
+Sentiment analysis with customers' comments.
