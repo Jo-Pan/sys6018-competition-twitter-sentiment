@@ -16,9 +16,9 @@ Kaggle Competition Link: https://inclass.kaggle.com/c/twitter-sentiment-analysis
 | knn | .59100 | 
 
 # Data exploration & Data cleaning 
-we explored unigram, bigram and trigram variables.
+We explored unigram, bigram and trigram variables.
 
-we cleanned the following:
+We cleanned the following:
 1. url
 2. twitter tag
 3. twitter username
