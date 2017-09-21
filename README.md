@@ -36,6 +36,8 @@ Our final data frames for analysis:
 1. comb_clean: includes all unigrams, .99sparse bigrams, high_entrophy bigrams, .99spase trigrams, high_entrophy trigrams. 
 2. comb_clean_hi_ent: includes all high entrophy varaibles (entrophy>2)
 
+entrophy: please check https://cran.r-project.org/web/packages/entropy/entropy.pdf
+
 # statistical modeling methods
 linear model and k-nn
 
