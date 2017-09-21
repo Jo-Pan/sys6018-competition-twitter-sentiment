@@ -40,8 +40,8 @@ Our final data frames for analysis:
 linear model and k-nn
 
 # model selection approach 
-cross-validation
-leave-one-out-validation
+cross-validation   
+leave-one-out-validation    
 
 # the reflection questions
 1. Who might care about this problem and why?
