@@ -5,7 +5,7 @@ Kaggle Competition Link: https://inclass.kaggle.com/c/twitter-sentiment-analysis
 |    Name         | Computing ID  |    Role       |
 | -------------   | ------------- | ------------- |
 | Huitong(Jo) Pan | hp4zw         | data preprocessing, entrophy with lm, decision tree, organize code & github    |
-| Abhijith Mandya | Content Cell  | lm            |
+| Abhijith Mandya | am6ku         | lm            |
 | Jack Prominski  | jmp3mk        | knn           |
 
 # Best Models & Scores:
