@@ -340,8 +340,8 @@ Mode <- function(x) {
 ## Test with k=15, 69.0% accuracy
 ## Test with k=20, 69.0% accuracy
 
-train <- comb_clean_final[comb_clean$dataset == 'train', 3:ncol(comb_clean)]
-test <- comb_clean_final[comb_clean$dataset == 'test', 3:ncol(comb_clean)]
+train <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'train', 6:ncol(comb_clean_hi_ent)]
+test <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'test', 6:ncol(comb_clean_hi_ent)]
 #train <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'train', 3:ncol(comb_clean_hi_ent)]
 #test <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'test', 3:ncol(comb_clean_hi_ent)]
 
@@ -349,7 +349,7 @@ knn_j <- function(x){
   tr_matrix <- rbind(train,x)
   dist_matrix <- as.matrix(dist(tr_matrix))
   diag(dist_matrix) <- NA
-  nearest <- head(order(dist_matrix[,ncol(dist_matrix)]), n=k) %>% comb_clean[.,]
+  nearest <- head(order(dist_matrix[,ncol(dist_matrix)]), n=k) %>% comb_clean_hi_ent[.,]
   score <- Mode(nearest$sentiment)
   return(score)
 }
@@ -361,7 +361,7 @@ sentiment <- apply(test, 1, knn_j)
 id <- seq(1:979)
 submit <- as.data.frame(cbind(id,sentiment))
 write_csv(submit, 'knnsubmission.csv')
-
+table(sentiment)
 
 # ======================================================================================
 #                           Decision Tree (optional)
