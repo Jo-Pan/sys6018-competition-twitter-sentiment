@@ -46,12 +46,12 @@ cross-validation
 leave-one-out-validation    
 
 # the reflection questions
-1. Who might care about this problem and why?
-Public relation department in companies dealing with self-driving cars might care about this problem, because it represents public's perception and helps tailoring their marketing message.
- 
-2. Why might this problem be challenging?
-Twitter can represent some groups of people's opinions. This does not include many elderlies' and non-frequent-twitter-users' opinions.
-
-3. What other problems resemble this problem?
-Sentiment analysis for election candidates.
-Sentiment analysis with customers' comments.
+1. Who might care about this problem and why?    
+Public relation department in companies dealing with self-driving cars might care about this problem, because it represents public's perception and helps tailoring their marketing message.   
+    
+2. Why might this problem be challenging?    
+Twitter can represent some groups of people's opinions. This does not include many elderlies' and non-frequent-twitter-users' opinions.  
+  
+3. What other problems resemble this problem?    
+Sentiment analysis for election candidates.    
+Sentiment analysis with customers' comments.    
