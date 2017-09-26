@@ -10,11 +10,11 @@ This is part of the Kaggle Competition to [analyze Twitter sentiments for self d
 
 ## Best Models & Scores:
 
-|   Model Name   | Kaggle Score |   
-| -------------   | ------------- | 
-| Linear Model | **0.69120**  |
-| K-NN | **0.59100** | 
-| Decision Tree | **0.68098** | 
+|   Model Name   | Kaggle Public Score |   Kaggle Private Score |   
+| -------------   | ------------- | ------------- | 
+| Linear Model | **0.69120**  | 0.65102  |
+| K-NN | **0.59100** | 0.52244 |
+| Decision Tree | **0.68098** | 0.66122  |
 
 ## Data exploration & Data cleaning 
 We explored unigram, bigram and trigram variables along with different levels of sparsicity and entropy relations.
