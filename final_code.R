@@ -232,7 +232,7 @@ lm.all_high_ent<-lm(sentiment ~., data = mytrain_hi_ent[,c(3,sig_coef_col_index)
 
 # ==================== LOOCV ============================
 cv.lm(mytrain_hi_ent[,c(3,sig_coef_col_index)], lm.all_high_ent, m=nrow(mytrain_hi_ent), dots = 
-        FALSE, seed=23, plotit=TRUE, printit=TRUE)
+        FALSE, seed=23, plotit=TRUE, printit=TRUE) # Mean Square Error : 0.549
 
 # ==================== prediction with test set for submission ============================
 preds.all_high_ent <- round(predict(lm.all_high_ent,newdata = comb_clean_hi_ent[comb_clean_hi_ent$dataset=="test",c(3,sig_coef_col_index)]))
