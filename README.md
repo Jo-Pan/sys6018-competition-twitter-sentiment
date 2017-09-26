@@ -57,11 +57,11 @@ leave-one-out-validation  - The chosen lm model was easily the best candidate fo
 
 ## Reflections
 1. **Who might care about this problem and why?**    
-PR and Marketing departments in companies dealing with self-driving cars might care about this problem, because it represents the public's perception at any given time and could help tailor their message. 
+PR and Marketing departments are always on the look out for the public sentiment towards their products, because it seems to have become representative of the public's perception. City councils and larger governmental organizations that are planning the inevitable introduction of these self-driving cars onto our streets can benefit by undertsanding the public sentiment in their local constituencies to ascertian how successful the adoption of these cars will be. 
     
 2. **Why might this problem be challenging?**    
-Tweets are not representative of the general population. Since tweets have far less structural integrity in terms of language rules,  it becomes harder to classify and predict using this data. 
+Tweets are not representative of the general population. They are a small concentrated sample set of people who typically use Twitter as a social media platform. Time and again we've seen that such places become echo chambers for specific opinions and perceptions that tend to have polarizing effects. Further, All predictive models depend on pattern recognitions and need some form of structured data gain predictive capability. Since tweets have far less structural integrity in terms of lingual rules and semantics, it becomes harder to classify and predict using them.
   
 3. **What other problems resemble this problem?**    
-Sentiment analysis for election candidates.    
-Sentiment analysis with customers' comments linked to scaled qualitative answers like # of stars.
+Sentiment analysis for election candidates across media outlets seems like a similar problem with lower classification intervals but more heterogeneous data sources complicating it.   
+Sentiment analysis with customers' comments linked to scaled qualitative answers like # of stars are very similar to this and are probably easier to perform as the comments usually are written in more complete sentences thus making it easier to predict.
