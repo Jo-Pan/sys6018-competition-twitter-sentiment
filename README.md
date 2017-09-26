@@ -20,6 +20,7 @@ This is part of the Kaggle Competition to [analyze Twitter sentiments for self d
 We explored unigram, bigram and trigram variables along with different levels of sparsicity and entropy relations.
 
 [Entropy Documentation](https://cran.r-project.org/web/packages/entropy/entropy.pdf)
+[n-grams Documentation](http://tm.r-forge.r-project.org/faq.html#Bigrams)
 
 We cleanned the following:
 1. URLs
