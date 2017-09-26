@@ -215,86 +215,31 @@ length(sentiment_col_index)
 #                           Linear Model
 # ======================================================================================
 
-# ==================== Split data ======================================================
+# ==================== Split data from test======================================================
 set.seed(1)
-mytrainrows<-sample(1:nrow(train),0.7*nrow(train))
-mytrain<-comb_clean[comb_clean$dataset=="train",][mytrainrows,]
-myvalid<-comb_clean[comb_clean$dataset=="train",][-mytrainrows,]
-
-mytrain_hi_ent<-comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",][mytrainrows,]
-myvalid_hi_ent<-comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",][-mytrainrows,]
-
-# ==================== all variables in comb_clean =====================================
-lm.all<-lm(sentiment ~.,data=mytrain[,c(3,6:ncol(mytrain))])
-summary(lm.all) #Adjusted R-squared:  0.8936  
-
-############## Leave one out cross validation ##################
-cv.lm(mytrain[,c(3,6:ncol(mytrain))], lm.all, m=nrow(mytrain), dots = 
-        FALSE, seed=23, plotit=TRUE, printit=TRUE)
-
-preds.all <- round(predict(lm.all,newdata = myvalid[,c(3,6:ncol(mytrain))]))
-sum(preds.all==myvalid$sentiment)/nrow(myvalid)           #VALID:correct rate = 0.2338983
- 
-# use only significang variables
-coef_lst<-summary(lm.all)$coefficients[,4]
-sig_coef_col_index<-which(colnames(comb_clean) %in% names(coef_lst[coef_lst<0.05]))
-lm.all.sig<-lm(sentiment~., data=mytrain[,c(3,sig_coef_col_index)])
-summary(lm.all.sig) #Adjusted R-squared:  0.1946 
-preds.all.sig <- predict(lm.all.sig,newdata = myvalid[,c(3,sig_coef_col_index)])
-sum(round(preds.all.sig)==myvalid$sentiment)/nrow(myvalid)#VALID:correct rate =0.5762712
-
-# ====================  .99sparse unigram in comb_clean ================================
-lm.99uni<-lm(sentiment ~.,data=mytrain[,c(3,sparse_99_col_index)])
-summary(lm.99uni) #Adjusted R-squared:  0.0838
-preds.99uni <- round(predict(lm.99uni,newdata = myvalid[,c(3,sparse_99_col_index)]))
-sum(preds.99uni==myvalid$sentiment)/nrow(myvalid)         #VALID:correct rate = 0.5525424
-
-coef_lst<-summary(lm.all)$coefficients[,4]
-sig_coef_col_index<-which(colnames(comb_clean) %in% names(coef_lst[coef_lst<0.05]))
-lm.99uni.sig<-lm(sentiment~., data=mytrain[,c(3,sig_coef_col_index)])
-preds.99uni.sig <- predict(lm.99uni.sig,newdata = myvalid[,c(3,sig_coef_col_index)])
-sum(round(preds.99uni.sig)==myvalid$sentiment)/nrow(myvalid)#VALID:correct rate =0.5762712
-
-# ====================  high_ent unigram in comb_clean ================================
-lm.high_ent.uni<-lm(sentiment ~.,data=mytrain[,c(3,high_entropy_col_index.uni)])
-summary(lm.high_ent.uni) #Adjusted R-squared:  0.1728 
-preds.high_ent.uni <- round(predict(lm.high_ent.uni,newdata = myvalid[,c(3,high_entropy_col_index.uni)]))
-sum(preds.high_ent.uni==myvalid$sentiment)/nrow(myvalid) #VALID:correct rate =  0.5423729
-
-coef_lst<-summary(lm.high_ent.uni)$coefficients[,4]
-sig_coef_col_index<-which(colnames(comb_clean) %in% names(coef_lst[coef_lst<0.05]))
-lm.high_ent.uni.sig<-lm(sentiment~., data=mytrain[,c(3,sig_coef_col_index)])
-preds.high_ent.uni.sig <- predict(lm.high_ent.uni.sig,newdata = myvalid[,c(3,sig_coef_col_index)])
-sum(round(preds.high_ent.uni.sig)==myvalid$sentiment)/nrow(myvalid)#VALID:correct rate=0.5966102
-
-
-# ====================  comb_clean_hi_ent ==============================================
-lm.high_ent<-lm(sentiment ~., data=mytrain_hi_ent[,c(3,6:ncol(mytrain_hi_ent))])
-summary(lm.high_ent)#Adjusted R-squared:  0.1461
-preds.high_ent <- round(predict(lm.high_ent,newdata =myvalid_hi_ent[,c(3,6:ncol(mytrain_hi_ent))]))
-sum(round(preds.high_ent)==myvalid$sentiment)/nrow(myvalid)#VALID:correct rate =0.5118644
-
-coef_lst<-summary(lm.high_ent)$coefficients[,4]
-sig_coef_col_index<-which(colnames(comb_clean_hi_ent) %in% names(coef_lst[coef_lst<0.05]))
-
-lm.high_ent.sig<-lm(sentiment ~.,data=mytrain_hi_ent[,c(3,sig_coef_col_index)])
-summary(lm.high_ent.sig)#Adjusted R-squared:0.1456 
-preds.high_ent.sig <- round(predict(lm.high_ent.sig,newdata =myvalid_hi_ent[,c(3,sig_coef_col_index)]))
-sum(round(preds.high_ent.sig)==myvalid$sentiment)/nrow(myvalid)#VALID:correct rate =.6101695
+mytrain_hi_ent<-comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",]
 
 # ==================== lm submission with comb_clean_hi_ent ============================
-lm.all_high_ent<-lm(sentiment ~., data=comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",c(3,6:ncol(mytrain_hi_ent))])
+lm.all_high_ent<-lm(sentiment ~., data=mytrain_hi_ent[,c(3,6:ncol(mytrain_hi_ent))])
 summary(lm.all_high_ent)#Adjusted R-squared:  0.1623
 
+#Select variables with a significant p-value
 coef_lst<-summary(lm.all_high_ent)$coefficients[,4]
-sig_coef_col_index<-which(colnames(comb_clean_hi_ent) %in% names(coef_lst[coef_lst<0.05]))
+sig_coef_col_index<-which(colnames(mytrain_hi_ent) %in% names(coef_lst[coef_lst<0.05]))
 
-lm.all_high_ent<-lm(sentiment ~., data=comb_clean_hi_ent[comb_clean_hi_ent$dataset=="train",c(3,sig_coef_col_index)])
+#retrain model on concentrated set of columns
+lm.all_high_ent<-lm(sentiment ~., data = mytrain_hi_ent[,c(3,sig_coef_col_index)])#Adjusted R-squared:  0.1438
+
+# ==================== LOOCV ============================
+cv.lm(mytrain_hi_ent[,c(3,sig_coef_col_index)], lm.all_high_ent, m=nrow(mytrain_hi_ent), dots = 
+        FALSE, seed=23, plotit=TRUE, printit=TRUE)
+
+# ==================== prediction with test set for submission ============================
 preds.all_high_ent <- round(predict(lm.all_high_ent,newdata = comb_clean_hi_ent[comb_clean_hi_ent$dataset=="test",c(3,sig_coef_col_index)]))
-
 summary(preds.all_high_ent) #since there is 0, make it to 1
 preds.all_high_ent[preds.all_high_ent==0]<-1
 
+#Create submission
 all_high_ent_table<-data.frame(test$id, preds.all_high_ent)
 write.table(all_high_ent_table, file="entropy2.csv", row.names=F, col.names=c("id", "sentiment"), sep=",")
 
@@ -302,6 +247,7 @@ write.table(all_high_ent_table, file="entropy2.csv", row.names=F, col.names=c("i
 #                           K-NN
 # ======================================================================================
 
+#Create mode function
 Mode <- function(x) {
   ux <- unique(x)
   ux[which.max(tabulate(match(x, ux)))]
@@ -342,8 +288,6 @@ Mode <- function(x) {
 
 train <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'train', 6:ncol(comb_clean_hi_ent)]
 test <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'test', 6:ncol(comb_clean_hi_ent)]
-#train <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'train', 3:ncol(comb_clean_hi_ent)]
-#test <- comb_clean_hi_ent[comb_clean_hi_ent$dataset == 'test', 3:ncol(comb_clean_hi_ent)]
 
 knn_j <- function(x){
   tr_matrix <- rbind(train,x)
@@ -354,10 +298,13 @@ knn_j <- function(x){
   return(score)
 }
 
+#Fianl choice for K
 k <- 15
+#Convert sentiment to numeric and apply
 sentiment <- numeric()
 sentiment <- apply(test, 1, knn_j)
 
+#Create submission
 id <- seq(1:979)
 submit <- as.data.frame(cbind(id,sentiment))
 write_csv(submit, 'knnsubmission.csv')
