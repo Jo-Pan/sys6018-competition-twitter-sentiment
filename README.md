@@ -12,9 +12,9 @@ This is part of the Kaggle Competition to [analyze Twitter sentiments for self d
 
 |   Model Name   | Kaggle Score |   
 | -------------   | ------------- | 
-| Linear Model | 0.69120  |
-| K-NN | 0.59100 | 
-| Decision Tree | 0.68098 | 
+| Linear Model | **0.69120**  |
+| K-NN | **0.59100** | 
+| Decision Tree | **0.68098** | 
 
 ## Data exploration & Data cleaning 
 We explored unigram, bigram and trigram variables along with different levels of sparsicity and entropy relations.
@@ -56,12 +56,12 @@ cross-validation - K-NN. Since the model itself took very long to run, we chose 
 leave-one-out-validation  - The chosen lm model was easily the best candidate for LOOCV since it took considerably less time to run   
 
 ## Reflections
-1. Who might care about this problem and why?    
+1. **Who might care about this problem and why?**    
 PR and Marketing departments in companies dealing with self-driving cars might care about this problem, because it represents the public's perception at any given time and could help tailor their message. 
     
-2. Why might this problem be challenging?    
+2. **Why might this problem be challenging?**    
 Tweets are not representative of the general population. Since tweets have far less structural integrity in terms of language rules,  it becomes harder to classify and predict using this data. 
   
-3. What other problems resemble this problem?    
+3. **What other problems resemble this problem?**    
 Sentiment analysis for election candidates.    
 Sentiment analysis with customers' comments linked to scaled qualitative answers like # of stars.
