@@ -1,12 +1,12 @@
 # sys6018-competition-twitter-sentiment
-This is part of the Kaggle Competition to [analyze Twitter sentiments for self driving cars] (https://inclass.kaggle.com/c/twitter-sentiment-analysis-self-driving-cars)
+This is part of the Kaggle Competition to [analyze Twitter sentiments for self driving cars](https://inclass.kaggle.com/c/twitter-sentiment-analysis-self-driving-cars)
   
 ## Team Members & Roles:
 |    Name         | Computing ID  |    Role       |
 | -------------   | ------------- | ------------- |
-| Huitong(Jo) Pan | hp4zw         | data preprocessing, entrophy with lm, decision tree, organize code & github    |
-| Abhijith Mandya | am6ku         | lm and code organization           |
-| Jack Prominski  | jmp3mk        | knn           |
+| Huitong(Jo) Pan | hp4zw         | Data preprocessing, entrophy with lm, decision tree, organize code & github    |
+| Abhijith Mandya | am6ku         | Linear Models, code organization and Readme           |
+| Jack Prominski  | jmp3mk        | K-NN           |
 
 ## Best Models & Scores:
 
@@ -19,6 +19,8 @@ This is part of the Kaggle Competition to [analyze Twitter sentiments for self d
 ## Data exploration & Data cleaning 
 We explored unigram, bigram and trigram variables along with different levels of sparsicity and entropy relations.
 
+[Entropy Documentation](https://cran.r-project.org/web/packages/entropy/entropy.pdf)
+
 We cleanned the following:
 1. URLs
 2. Twitter Tags
@@ -29,15 +31,13 @@ We cleanned the following:
 7. Whitespaces
 8. Numbers
 9. Punctuation
-10.Uppercase
+10. Uppercase
 
 We then stemmed the word document using the tm package.
 
 Our final data frames for analysis:
 1. comb_clean: includes all unigrams, .99sparse bigrams, high_entrophy bigrams, .99spase trigrams, high_entrophy trigrams. 
 2. comb_clean_hi_ent: includes all high entrophy varaibles (entrophy>2)
-
-[entropy](https://cran.r-project.org/web/packages/entropy/entropy.pdf)
 
 ## Statistical modeling methods
 ### Linear Model
